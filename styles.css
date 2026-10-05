@@ -1,0 +1,268 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px 12px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff7f5;
+  font-family: sans-serif;
+  color: #403638;
+}
+
+.container {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+}
+
+.message {
+  margin-bottom: 24px;
+  color: #806e71;
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e6cfd2;
+  background-color: #fff;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.cell:focus-visible,
+.buttons button:focus-visible {
+  outline: 3px solid #8e5263;
+  outline-offset: 2px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.buttons button {
+  flex: 1;
+  max-width: 160px;
+  padding: 13px 10px;
+  border: none;
+  border-radius: 10px;
+  background: #e97991;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.buttons button:hover {
+  background: #d9637c;
+}
+
+#resetBtn {
+  background: #b6a2a5;
+}
+
+#resetBtn:hover {
+  background: #988387;
+}
+
+.status {
+  margin-top: 18px;
+  font-size: 13px;
+  color: #806e71;
+}
+
+/* ハートの線画ガイド */
+.cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("images/heart.png");
+  background-repeat: no-repeat;
+  background-size: 300% 300%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 1段目 */
+.cell[data-index="0"]::before {
+  background-position: 0% 0%;
+}
+.cell[data-index="1"]::before {
+  background-position: 50% 0%;
+}
+.cell[data-index="2"]::before {
+  background-position: 100% 0%;
+}
+
+/* 2段目 */
+.cell[data-index="3"]::before {
+  background-position: 0% 50%;
+}
+.cell[data-index="4"]::before {
+  background-position: 50% 50%;
+}
+.cell[data-index="5"]::before {
+  background-position: 100% 50%;
+}
+
+/* 3段目 */
+.cell[data-index="6"]::before {
+  background-position: 0% 100%;
+}
+.cell[data-index="7"]::before {
+  background-position: 50% 100%;
+}
+.cell[data-index="8"]::before {
+  background-position: 100% 100%;
+}
+
+/* 完成したらハートの線画を非表示にする */
+body.completed .cell::before {
+  display: none;
+}
+
+/* カメラ画面 */
+.camera-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.camera-modal[hidden] {
+  display: none;
+}
+
+.camera-panel {
+  width: 100%;
+  max-width: 480px;
+  padding: 20px;
+  border-radius: 16px;
+  background: white;
+  text-align: center;
+}
+
+.camera-panel h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+
+#cameraPreview {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  background: #222;
+  border-radius: 10px;
+}
+
+#cameraMessage {
+  font-size: 14px;
+  color: #806e71;
+}
+
+.camera-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.camera-buttons button {
+  flex: 1;
+  padding: 12px 8px;
+  border: none;
+  border-radius: 10px;
+  background: #e97991;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#cancelCameraBtn {
+  background: #988387;
+}
+
+/* カメラ映像とガイド線を重ねる */
+.camera-view {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #222;
+}
+
+.camera-view #cameraPreview {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.camera-guide {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: url("images/heart.png");
+  background-repeat: no-repeat;
+  background-size: 300% 300%;
+  opacity: 0.8;
+}
+
+/* 完成した作品の表示 */
+body.completed .grid {
+  gap: 0;
+  border-radius: 0;
+}
+
+body.completed .cell {
+  border: 0;
+  border-radius: 0;
+  cursor: default;
+}
+
+body.completed .cell:active {
+  transform: none;
+}
+
+body.completed .cell::before {
+  display: none;
+}
+
+/* 完成後はボタンを見やすくする */
+body.completed #completeBtn {
+  background: #988387;
+}
