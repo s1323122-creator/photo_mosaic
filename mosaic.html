@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>おさんぽの記録 | フォトモザイク</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="mosaic-page">
+  <main class="container">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="フォトモザイク ホーム"><span class="brand-icon" aria-hidden="true">✿</span> フォトモザイク</a>
+      <span class="header-note">おさんぽの、ちいさな記録</span>
+    </header>
+
+    <nav class="page-nav" aria-label="ページ移動">
+      <a class="back-link" href="index.html"><span aria-hidden="true">←</span> ホームへ戻る</a>
+      <a class="back-link" href="gallery.html">作品一覧 <span aria-hidden="true">↗</span></a>
+    </nav>
+    <section class="mosaic-intro" aria-labelledby="pageTitle">
+      <p class="eyebrow">ひとつずつ、思い出を集めよう</p>
+      <h1 id="pageTitle">おさんぽの記録</h1>
+      <p class="message">今日の一枚も、前のおさんぽの続きも。<br>好きな景色を、あなたのペースで。</p>
+    </section>
+
+    <section class="mosaic-card" aria-labelledby="mosaicTitle">
+      <div class="card-heading"><div><p class="eyebrow">MY LITTLE COLLECTION</p><h2 id="mosaicTitle">わたしのおさんぽモザイク</h2></div><span class="collection-badge">9枚でひとつの作品に</span></div>
+      <p class="grid-instruction">好きなマスをタップして、カメラで一枚。完成すると、枠の内側だけを残したハートの作品になります。</p>
+      <div id="cameraSessionNotice" class="camera-session-notice" hidden>
+        <p>続けて撮れるよう、カメラに接続中です。アプリを離れると接続を終了します。</p>
+        <button id="endCameraBtn" class="secondary-link" type="button">カメラの接続を終了</button>
+      </div>
+
+    <div class="grid" id="photoGrid">
+      <button class="cell" data-index="0" aria-label="1マス目"></button>
+      <button class="cell" data-index="1" aria-label="2マス目"></button>
+      <button class="cell" data-index="2" aria-label="3マス目"></button>
+      <button class="cell" data-index="3" aria-label="4マス目"></button>
+      <button class="cell" data-index="4" aria-label="5マス目"></button>
+      <button class="cell" data-index="5" aria-label="6マス目"></button>
+      <button class="cell" data-index="6" aria-label="7マス目"></button>
+      <button class="cell" data-index="7" aria-label="8マス目"></button>
+      <button class="cell" data-index="8" aria-label="9マス目"></button>
+    </div>
+
+    <img id="completedPreview" class="completed-preview" alt="ハートの形に切り抜いたおさんぽモザイク" hidden>
+    <div class="buttons">
+      <button id="completeBtn" type="button">作品を完成させる <span aria-hidden="true">↗</span></button>
+      <button id="resetBtn" type="button">初めから</button>
+    </div>
+
+    <p id="status" class="status" role="status" aria-live="polite">まずは1枚から。あなたのペースで集めていこう。</p>
+    <div id="completedActions" class="completed-actions" hidden>
+      <a id="downloadWork" class="primary-link" download>画像を端末に保存</a>
+      <a class="secondary-link" href="gallery.html">保存した作品を見る</a>
+      <p class="start-note">端末によってはダウンロード先から画像を開けます。</p>
+    </div>
+    </section>
+    <aside class="outing-tip"><span class="tip-icon" aria-hidden="true">☀</span><div><h2>きょうの小さなヒント</h2><p>おうちの近くで、緑色のものをひとつ探してみよう。<br>一枚撮れたら、それだけで今日の思い出。</p></div></aside>
+    <footer>一歩の日も、おやすみの日も。あなたのペースで。<span aria-hidden="true"> ❀</span></footer>
+    
+    <section id="cameraModal" class="camera-modal" hidden>
+      <div class="camera-panel">
+        <h2>写真を撮ろう</h2>
+
+        <div class="camera-view">
+            <video id="cameraPreview" autoplay playsinline></video>
+            <div id="cameraGuide" class="camera-guide"></div>
+        </div>
+
+
+        <p id="cameraMessage">カメラを準備しています...</p>
+
+        <div class="camera-buttons">
+          <button id="takePhotoBtn" type="button">撮影する</button>
+          <button id="cancelCameraBtn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </section>
+
+    <canvas id="photoCanvas" hidden></canvas>
+
+  </main>
+
+  <script src="artworks.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

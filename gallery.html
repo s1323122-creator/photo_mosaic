@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>思い出の作品集 | フォトモザイク</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="gallery-page">
+  <main class="container">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="フォトモザイク ホーム"><span class="brand-icon" aria-hidden="true">✿</span> フォトモザイク</a>
+      <span class="header-note">おさんぽの、ちいさな記録</span>
+    </header>
+    <nav class="page-nav" aria-label="ページ移動">
+      <a class="back-link" href="index.html"><span aria-hidden="true">←</span> ホームへ戻る</a>
+      <a class="back-link" href="mosaic.html">写真を集める <span aria-hidden="true">↗</span></a>
+    </nav>
+    <section class="mosaic-intro" aria-labelledby="galleryTitle">
+      <p class="eyebrow">MY LITTLE MEMORIES</p>
+      <h1 id="galleryTitle">思い出の作品集</h1>
+      <p class="message">少しずつ集めた「すき」が、こんなに。<br>あの日の景色を、いつでもここで。</p>
+    </section>
+    <p id="galleryStatus" class="gallery-status" role="status" aria-live="polite">作品を読み込んでいます…</p>
+    <button id="retryGallery" class="secondary-link" type="button" hidden>もう一度読み込む</button>
+    <section id="emptyGallery" class="howto-card empty-gallery" aria-labelledby="emptyTitle" hidden>
+      <span class="empty-flower" aria-hidden="true">✿</span>
+      <h2 id="emptyTitle">最初の思い出を、ここに。</h2>
+      <p>写真を集めて作品を完成させると、<br>この作品集に並びます。</p>
+      <a class="primary-link" href="mosaic.html">写真を集めにいく <span aria-hidden="true">↗</span></a>
+    </section>
+    <section id="galleryList" class="gallery-list" aria-label="保存した作品"></section>
+    <p class="storage-note">作品はこのブラウザに保存されます。大切な作品は「画像を保存」から端末にも残してね。ブラウザのデータを消すと、作品集の画像も消えます。</p>
+    <footer>一歩の日も、おやすみの日も。あなたのペースで。<span aria-hidden="true"> ❀</span></footer>
+  </main>
+  <script src="artworks.js"></script>
+  <script src="gallery.js"></script>
+</body>
+</html>

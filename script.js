@@ -11,10 +11,51 @@ const takePhotoBtn = document.getElementById("takePhotoBtn");
 const cancelCameraBtn = document.getElementById("cancelCameraBtn");
 const photoCanvas = document.getElementById("photoCanvas");
 const cameraGuide = document.getElementById("cameraGuide");
+const completedActions = document.getElementById("completedActions");
+const downloadWork = document.getElementById("downloadWork");
+const completedPreview = document.getElementById("completedPreview");
+let workUrl = null;
+let pendingWork = null;
+let savingWork = false;
 
 let completed = false;
 let selectedCell = null;
 let cameraStream = null;
+let cameraRequest = null;
+let cameraSession = 0;
+let cameraView = 0;
+const cameraSessionNotice = document.getElementById("cameraSessionNotice");
+const endCameraBtn = document.getElementById("endCameraBtn");
+
+function hasLiveCamera() {
+  return cameraStream?.getVideoTracks().some(track => track.readyState === "live");
+}
+
+async function getCameraStream() {
+  if (hasLiveCamera()) return cameraStream;
+  if (cameraRequest) return cameraRequest;
+  cameraStream?.getTracks().forEach(track => track.stop());
+  cameraStream = null;
+  const session = cameraSession;
+  const request = navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment" }, audio: false
+  }).then(stream => {
+    // A permission response may arrive after reset, navigation or backgrounding.
+    if (session !== cameraSession || document.hidden) {
+      stream.getTracks().forEach(track => track.stop());
+      return null;
+    }
+    cameraStream = stream;
+    cameraSessionNotice.hidden = false;
+    return stream;
+  });
+  cameraRequest = request;
+  try {
+    return await request;
+  } finally {
+    if (cameraRequest === request) cameraRequest = null;
+  }
+}
 
 const STORAGE_KEY = "photoMosaicPhotos";
 
@@ -66,7 +107,8 @@ displaySavedPhotos();
 
 
 async function openCamera(cell) {
-  if (completed) return;
+  if (completed || document.hidden) return;
+  const view = ++cameraView;
 
   selectedCell = cell;
   const index = Number(cell.dataset.index);
@@ -90,19 +132,16 @@ cameraGuide.style.backgroundPosition =
       );
     }
 
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "environment"
-      },
-      audio: false
-    });
-
-    cameraPreview.srcObject = cameraStream;
+    const stream = await getCameraStream();
+    if (!stream || view !== cameraView || cameraModal.hidden) return;
+    cameraPreview.srcObject = stream;
     await cameraPreview.play();
+    if (view !== cameraView || cameraModal.hidden) return;
 
     cameraMessage.textContent = "準備完了！撮影ボタンを押してください。";
     takePhotoBtn.disabled = false;
   } catch (error) {
+    if (view !== cameraView || cameraModal.hidden) return;
     console.error(error);
     cameraMessage.textContent =
       error.name === "NotAllowedError"
@@ -111,15 +150,25 @@ cameraGuide.style.backgroundPosition =
   }
 }
 
+function closeCamera() {
+  cameraView++;
+  cameraPreview.pause();
+  cameraPreview.srcObject = null;
+  cameraModal.hidden = true;
+  takePhotoBtn.disabled = true;
+  selectedCell = null;
+}
+
 function stopCamera() {
+  cameraSession++;
+  cameraRequest = null;
+  closeCamera();
   if (cameraStream) {
     cameraStream.getTracks().forEach((track) => track.stop());
     cameraStream = null;
   }
 
-  cameraPreview.srcObject = null;
-  cameraModal.hidden = true;
-  takePhotoBtn.disabled = true;
+  cameraSessionNotice.hidden = true;
 }
 
 cells.forEach((cell) => {
@@ -129,7 +178,7 @@ cells.forEach((cell) => {
 });
 
 takePhotoBtn.addEventListener("click", () => {
-  if (!cameraStream || !selectedCell) return;
+  if (!hasLiveCamera() || !selectedCell || takePhotoBtn.disabled) return;
 
   const width = cameraPreview.videoWidth;
   const height = cameraPreview.videoHeight;
@@ -150,39 +199,95 @@ takePhotoBtn.addEventListener("click", () => {
 
   photos[index] = photoData;
   selectedCell.style.backgroundImage = `url("${photoData}")`;
-  savePhotos();
+  if (savePhotos()) {
+    status.textContent = `${index + 1}マス目に写真を入れました。`;
+  }
 
-  status.textContent = `${index + 1}マス目に写真を入れました。`;
-
-  stopCamera();
+  closeCamera();
   selectedCell = null;
 });
 
 cancelCameraBtn.addEventListener("click", () => {
-  stopCamera();
+  closeCamera();
   selectedCell = null;
 });
 
-completeBtn.addEventListener("click", () => {
+endCameraBtn.addEventListener("click", stopCamera);
+
+completeBtn.addEventListener("click", async () => {
+  if (savingWork || (completed && !pendingWork)) return;
+  const count = photos.filter((photo) => photo !== null).length;
+  if (count === 0) {
+    status.textContent = "まずは写真を1枚撮ってみましょう。";
+    return;
+  }
+  savingWork = true;
+  completeBtn.disabled = true;
+  resetBtn.disabled = true;
   completed = true;
   stopCamera();
   selectedCell = null;
-
-  document.body.classList.add("completed");
-
-  const count = photos.filter((photo) => photo !== null).length;
-
-  status.textContent =
-    `作品が完成しました！ ${count} / 9 マスに写真が入っています。`;
+  status.textContent = "作品を1枚の画像にして保存しています…";
+  try {
+    if (!pendingWork) {
+      const blob = await Artworks.compose(photos.slice());
+      pendingWork = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        createdAt: new Date().toISOString(), count, blob
+      };
+      if (workUrl) URL.revokeObjectURL(workUrl);
+      workUrl = URL.createObjectURL(blob);
+      downloadWork.href = workUrl;
+      completedPreview.src = workUrl;
+      completedPreview.hidden = false;
+      downloadWork.download = Artworks.filename(pendingWork);
+      completedActions.hidden = false;
+      document.body.classList.add("completed");
+    }
+    await Artworks.save(pendingWork);
+    pendingWork = null;
+    status.textContent = `作品を一覧に保存しました！ ${count} / 9 マスの思い出です。`;
+    completeBtn.textContent = "作品を保存しました";
+  } catch (error) {
+    console.error(error);
+    status.textContent = pendingWork
+      ? "作品一覧に保存できませんでした。画像を端末に保存するか、もう一度保存をお試しください。"
+      : error.name === "SecurityError"
+        ? "ブラウザの制限で画像を作成できませんでした。ページを再読み込みしてお試しください。"
+        : error.message || "画像を作成できませんでした。もう一度お試しください。";
+    completeBtn.textContent = "もう一度保存する";
+    if (!pendingWork) completed = false;
+  } finally {
+    savingWork = false;
+    completeBtn.disabled = completed && !pendingWork;
+    resetBtn.disabled = false;
+  }
 });
 
 
 resetBtn.addEventListener("click", () => {
+  if (savingWork) return;
   stopCamera();
   selectedCell = null;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.error(error);
+    status.textContent = "保存中の写真をリセットできませんでした。もう一度お試しください。";
+    displaySavedPhotos();
+    return;
+  }
   completed = false;
   photos = Array(9).fill(null);
-  localStorage.removeItem(STORAGE_KEY);
+  pendingWork = null;
+  if (workUrl) URL.revokeObjectURL(workUrl);
+  workUrl = null;
+  completedActions.hidden = true;
+  downloadWork.removeAttribute("href");
+  completedPreview.hidden = true;
+  completedPreview.removeAttribute("src");
+  completeBtn.disabled = false;
+  completeBtn.textContent = "作品を完成させる ↗";
 
   cells.forEach((cell) => {
     cell.style.backgroundImage = "";
@@ -193,3 +298,7 @@ resetBtn.addEventListener("click", () => {
 });
 
 window.addEventListener("beforeunload", stopCamera);
+window.addEventListener("pagehide", stopCamera);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopCamera();
+});
